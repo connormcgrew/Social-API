@@ -1,10 +1,10 @@
-const { Schema } = require('mongoose');
+const { Schema, version } = require('mongoose');
+const timeFormat = require('../util/date');
 
 const reactionSchema = new Schema(
     {
         reactionId: {
             type: Schema.Types.ObjectId,
-            default: () => new Types.ObjectId() // Default value as a new ObjectId
         },
         reactionBody: {
             type: String,
@@ -18,12 +18,17 @@ const reactionSchema = new Schema(
         createdAt: {
             type: Date,
             default: Date.now,
-            get: createdAtVal => dateFormat(createdAtVal) // Getter method to format the timestamp
+            get: createdAtVal => timeFormat(createdAtVal) // Getter method to format the timestamp
         }
     },
     {
         toJSON: {
-            getters: true
+            getters: true,
+            versionKey: false,
+            virtuals: true,
+            transform: (doc, ret) => {
+                delete ret._id;
+            }
         }
     }
 );

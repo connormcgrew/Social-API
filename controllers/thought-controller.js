@@ -1,4 +1,4 @@
-const { Thought } = require('../models');
+const { Thought, User } = require('../models');
 
 const thoughController = {
 
@@ -29,14 +29,30 @@ const thoughController = {
 
     createThought: async (req, res) => {
         try {
-            const thought = await Thought.create(req.body);
-            res.json(thought);
+          const { username, thoughtText } = req.body;
+      
+          // Find the user based on the username
+          const user = await User.findOne({ username });
+      
+          if (!user) {
+            res.status(404).json({ message: 'No user found!' });
+            return;
+          }
+      
+          // Create the thought with the matching username
+          const thought = await Thought.create({ username, thoughtText });
+      
+          // Add the thought to the user's thoughts
+          user.thoughts.push(thought);
+          await user.save();
+      
+          res.json(thought);
         } catch (err) {
-            console.log(err);
-            res.sendStatus(400);
+          console.log(err);
+          res.sendStatus(400);
         }
-
-    },
+      },
+      
 
     updateThought: async (req, res) => {
         try {
@@ -91,22 +107,27 @@ const thoughController = {
 
     deleteReaction: async (req, res) => {
         try {
-            const thought = await Thought.findOneAndUpdate(
-                { _id: req.params.thoughtId },
-                { $pull: { reactions: { reactionId: req.params.reactionId } } },
-                { new: true }
-            );
-            res.json(thought);
-            if (!thought) {
-                res.status(404).json({ message: 'No thought found!' });
-                return;
-            }
+          const { thoughtId, reactionId } = req.params;
+      
+          const updatedThought = await Thought.findByIdAndUpdate(
+            thoughtId,
+            { $pull: { reactions: { _id: reactionId } } },
+            { new: true }
+          );
+      
+          if (!updatedThought) {
+            res.status(404).json({ message: 'No thought found!' });
+            return;
+          }
+      
+          res.json(updatedThought);
+        } catch (err) {
+          console.log(err);
+          res.sendStatus(500);
         }
-        catch (err) {
-            console.log(err);
-            res.sendStatus(400);
-        }
-    }
+      }
+      
+      
 };
 
 module.exports = thoughController;
