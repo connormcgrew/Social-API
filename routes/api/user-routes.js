@@ -8,11 +8,18 @@ const {
     addFriend,
     removeFriend
 } = require('../../controllers/user-controller');
+const { create } = require('../../models/User');
 // Set up GET all and POST at /api/users
 router
     .route('/')
     .get(getAllUsers)
-    .post(createUser);
+    .post((req, res) => {
+        const { username, email } = req.body;
+        const userData = { username, email, thoughts: [], friends: [] };
+        create(userData)
+            .then(dbUserData => res.json(dbUserData))
+            .catch(err => res.json(err));
+    });
 // Set up GET one, PUT, and DELETE at /api/users/:id
 router
     .route('/:id')

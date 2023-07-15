@@ -28,13 +28,13 @@ getUserById: async (req, res) => {
 
 createUser: async (req, res) => {
     try {
-        const user = await User.create(req.body);
+        const { username, email } = req.body;
+        const user = await User.create({ username, email, thoughts: [] });
         res.json(user);
     } catch (err) {
         console.log(err);
         res.sendStatus(400);
     }
-
 },
 
 updateUser: async (req, res) => {
